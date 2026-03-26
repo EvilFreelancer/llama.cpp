@@ -5108,13 +5108,6 @@ class RuGPT3XLModel(TextModel):
         super().__init__(*args, **kwargs)
         self._qkv_parts: dict[int, dict[str, Tensor]] = {}
 
-    def set_vocab(self):
-        self._set_vocab_gpt2()
-
-    def get_vocab_base_pre(self, tokenizer) -> str:
-        # ruGPT3XL uses GPT-2 byte-level BPE with the same pre-tokenization regex
-        return "gpt-2"
-
     def modify_tensors(self, data_torch: Tensor, name: str, bid: int | None) -> Iterable[tuple[str, Tensor]]:
         # Fuse separate Q, K, V projections into a single QKV tensor
         if ".self_attn.q_proj." in name or ".self_attn.k_proj." in name or ".self_attn.v_proj." in name:
