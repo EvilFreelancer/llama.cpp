@@ -5132,14 +5132,13 @@ class RuGPT3XLModel(TextModel):
                 q = self._qkv_parts[bid].pop(q_key)
                 k = self._qkv_parts[bid].pop(k_key)
                 v = self._qkv_parts[bid].pop(v_key)
-                qkv = torch.cat([q, k, v], dim=0)
-                qkv_name = self.format_tensor_name(gguf.MODEL_TENSOR.ATTN_QKV, bid, f".{suffix}")
-                logger.info(f"Fused Q/K/V {suffix} for layer {bid} -> {qkv_name}")
-                yield qkv_name, qkv
-            return
+                data_torch = torch.cat([q, k, v], dim=0)
+                name = self.format_tensor_name(gguf.MODEL_TENSOR.ATTN_QKV, bid, f".{suffix}")
+                logger.debug(f"Fused Q/K/V {suffix} for layer {bid} -> {name}")
+            else:
+                return
 
-        new_name = self.map_tensor_name(name)
-        yield new_name, data_torch
+        yield from super().modify_tensors(data_torch, name, bid)
 
 
 @ModelBase.register("PhiForCausalLM")
