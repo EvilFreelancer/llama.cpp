@@ -5115,16 +5115,6 @@ class RuGPT3XLModel(TextModel):
         # ruGPT3XL uses GPT-2 byte-level BPE with the same pre-tokenization regex
         return "gpt-2"
 
-    def set_gguf_parameters(self):
-        self.gguf_writer.add_block_count(self.block_count)
-        self.gguf_writer.add_context_length(self.hparams["max_position_embeddings"])
-        self.gguf_writer.add_embedding_length(self.hparams["hidden_size"])
-        self.gguf_writer.add_feed_forward_length(self.hparams["intermediate_size"])
-        self.gguf_writer.add_head_count(self.hparams["num_attention_heads"])
-        self.gguf_writer.add_head_count_kv(self.hparams["num_attention_heads"])
-        self.gguf_writer.add_layer_norm_eps(self.hparams["layer_norm_eps"])
-        self.gguf_writer.add_file_type(self.ftype)
-
     def modify_tensors(self, data_torch: Tensor, name: str, bid: int | None) -> Iterable[tuple[str, Tensor]]:
         # Fuse separate Q, K, V projections into a single QKV tensor
         if ".self_attn.q_proj." in name or ".self_attn.k_proj." in name or ".self_attn.v_proj." in name:
