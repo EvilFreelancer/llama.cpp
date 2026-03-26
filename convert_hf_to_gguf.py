@@ -5107,9 +5107,7 @@ class GPT2Model(TextModel):
 class RuGPT3XLModel(TextModel):
     model_arch = gguf.MODEL_ARCH.GPT2
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._qkv_parts: dict[int, dict[str, Tensor]] = {}
+    self._qkv_parts: list[dict[str, Tensor]] | None = None
 
     def modify_tensors(self, data_torch: Tensor, name: str, bid: int | None) -> Iterable[tuple[str, Tensor]]:
         # Fuse separate Q, K, V projections into a single QKV tensor
@@ -5119,12 +5117,12 @@ class RuGPT3XLModel(TextModel):
             key = f"{part}.{suffix}"
 
             assert bid is not None
-            if bid not in self._qkv_parts:
-                self._qkv_parts[bid] = {}
+            if self._qkv_parts is None:
+                self._qkv_parts = [{} for _ in range(self.block_count)]
             self._qkv_parts[bid][key] = data_torch
 
             q_key, k_key, v_key = f"q.{suffix}", f"k.{suffix}", f"v.{suffix}"
-            if all(k in self._qkv_parts.get(bid, {}) for k in [q_key, k_key, v_key]):
+            if all(k in self._qkv_parts[bid] for k in [q_key, k_key, v_key]):
                 q = self._qkv_parts[bid].pop(q_key)
                 k = self._qkv_parts[bid].pop(k_key)
                 v = self._qkv_parts[bid].pop(v_key)
