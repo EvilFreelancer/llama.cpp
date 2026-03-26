@@ -5134,6 +5134,15 @@ class RuGPT3XLModel(TextModel):
 
         yield from super().modify_tensors(data_torch, name, bid)
 
+    def prepare_tensors(self):
+        super().prepare_tensors()
+
+        if self._qkv_parts is not None:
+            # flatten `list[dict[str, Tensor]]` into `list[str]`
+            parts = [f"({i}){k}" for i, d in enumerate(self._qkv_parts) for k in d.keys()]
+            if len(parts) > 0:
+                raise ValueError(f"Unprocessed Q/K/V parts: {parts}")
+
 
 @ModelBase.register("PhiForCausalLM")
 class Phi2Model(TextModel):
